@@ -24,8 +24,6 @@
         <lombok.version>1.18.34</lombok.version>
     </properties>
 
-
-
     <modules>
 		<module>stats</module>
 		<module>main-service</module>
