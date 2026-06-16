@@ -1,0 +1,20 @@
+services:
+  stats-db:
+    image: postgres:16.1
+    container_name: stats-db
+    environment:
+      POSTGRES_USER: stat
+      POSTGRES_PASSWORD: stat
+      POSTGRES_DB: stat
+    ports:
+      - "5432:5432"
+
+  ewm-db:
+    image: postgres:16.1
+    container_name: ewm-db
+    environment:
+      POSTGRES_USER: main
+      POSTGRES_PASSWORD: main
+      POSTGRES_DB: main
+    ports:
+      - "6432:5432"
