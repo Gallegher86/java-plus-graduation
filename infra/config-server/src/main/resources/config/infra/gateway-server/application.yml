@@ -12,6 +12,11 @@ spring:
           enabled: true
 
       routes:
+        - id: users-admin
+          uri: lb://user-service
+          predicates:
+            - Path=/admin/users/**
+
         - id: main-service-admin
           uri: lb://main-service
           predicates:
