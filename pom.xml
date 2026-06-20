@@ -39,11 +39,18 @@
                 <artifactId>stats-dto</artifactId>
                 <version>${project.version}</version>
             </dependency>
+
             <dependency>
                 <groupId>ru.practicum</groupId>
                 <artifactId>stats-client</artifactId>
                 <version>${project.version}</version>
             </dependency>
+
+			<dependency>
+				<groupId>ru.practicum</groupId>
+				<artifactId>interaction-api</artifactId>
+				<version>${project.version}</version>
+			</dependency>
 
 			<!-- SpringCloud -->
 			<dependency>

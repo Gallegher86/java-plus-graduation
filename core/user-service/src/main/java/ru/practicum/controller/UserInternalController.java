@@ -21,4 +21,10 @@ public class UserInternalController {
     public ResponseEntity<UserDto> getUser(@PathVariable("userId") Long userId) {
         return ResponseEntity.ok(userService.getUser(userId));
     }
+
+    @GetMapping("/check/{userId}")
+    public ResponseEntity<Void> checkUser(@PathVariable("userId") Long userId) {
+        userService.checkUser(userId);
+        return ResponseEntity.ok().build();
+    }
 }

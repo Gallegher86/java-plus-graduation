@@ -71,8 +71,19 @@ public class UserServiceImpl implements UserService {
     @Transactional(readOnly = true)
     public UserDto getUser(Long id) {
         User user = userRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("Пользователь не найден"));
+                .orElseThrow(() -> new NotFoundException("Пользователь c ID " + id + " не найден"));
         log.info("Пользователь с ID {} найден", id);
         return userMapper.toUserDto(user);
+    }
+
+    @Override
+    public void checkUser(Long id) {
+        log.info("Запрос на проверку существования пользователя с ID {}", id);
+
+        if (!userRepository.existsById(id)) {
+            throw new NotFoundException("Пользователь c ID " + id + " не найден.");
+        }
+
+        log.info("Пользователь с ID {} существует", id);
     }
 }
