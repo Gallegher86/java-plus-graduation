@@ -15,6 +15,8 @@ import ru.practicum.model.User;
 import ru.practicum.repository.UserRepository;
 
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -70,9 +72,47 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional(readOnly = true)
     public UserDto getUser(Long id) {
+        log.info("Запрос на получение пользователя с ID {}", id);
         User user = userRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("Пользователь не найден"));
+                .orElseThrow(() -> new NotFoundException("Пользователь c ID " + id + " не найден"));
         log.info("Пользователь с ID {} найден", id);
         return userMapper.toUserDto(user);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<UserDto> getUsers(List<Long> ids) {
+        log.info("Запрос на получение пользователей с IDs {}", ids);
+        List<User> users = userRepository.findAllById(ids);
+        validateUserIds(ids, users);
+        log.info("Пользователи с IDs {} найдены", ids);
+        return users.stream()
+                .map(userMapper::toUserDto)
+                .toList();
+    }
+
+    @Override
+    public void checkUser(Long id) {
+        log.info("Запрос на проверку существования пользователя с ID {}", id);
+
+        if (!userRepository.existsById(id)) {
+            throw new NotFoundException("Пользователь c ID " + id + " не найден.");
+        }
+
+        log.info("Пользователь с ID {} существует", id);
+    }
+
+    private void validateUserIds(List<Long> requestedIds, List<User> users) {
+        Set<Long> foundIds = users.stream()
+                .map(User::getId)
+                .collect(Collectors.toSet());
+
+        List<Long> missingIds = requestedIds.stream()
+                .filter(id -> !foundIds.contains(id))
+                .toList();
+
+        if (!missingIds.isEmpty()) {
+            throw new NotFoundException("Пользователи не найдены: " + missingIds);
+        }
     }
 }

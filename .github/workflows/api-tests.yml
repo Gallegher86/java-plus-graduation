@@ -24,3 +24,8 @@ on:
 
 jobs:
   build:
+    uses: yandex-praktikum/java-plus-graduation/.github/workflows/api-tests.yml@ci
+    with:
+      stats_test_mode: ${{ inputs.stats_test_mode }}
+      verbose_mode: ${{ inputs.verbose_mode }}
+      print_logs: ${{ inputs.print_logs }}
