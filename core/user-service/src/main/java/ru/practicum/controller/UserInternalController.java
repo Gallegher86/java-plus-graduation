@@ -29,4 +29,10 @@ public class UserInternalController {
     public void checkUser(@PathVariable("userId") Long userId) {
         userService.checkUser(userId);
     }
+
+    @GetMapping("/check/{userId}")
+    public ResponseEntity<Void> checkUser(@PathVariable("userId") Long userId) {
+        userService.checkUser(userId);
+        return ResponseEntity.ok().build();
+    }
 }
