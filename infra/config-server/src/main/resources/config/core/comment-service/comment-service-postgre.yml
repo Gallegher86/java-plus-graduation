@@ -4,8 +4,8 @@ server:
 spring:
   datasource:
     url: jdbc:postgresql://localhost:6434/comment
-    username: comment
-    password: comment
+    username: user
+    password: password
     driver-class-name: org.postgresql.Driver
 
   sql:

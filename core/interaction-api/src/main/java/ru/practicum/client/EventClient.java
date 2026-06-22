@@ -5,7 +5,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 import ru.practicum.client.config.FeignConfig;
-import ru.practicum.dto.event.EventCommentDto;
+import ru.practicum.dto.event.EventInternalDto;
 
 import java.util.List;
 
@@ -13,8 +13,11 @@ import java.util.List;
 public interface EventClient {
 
     @GetMapping("/internal/events/{eventId}")
-    EventCommentDto getEvent(@PathVariable("eventId") Long eventId);
+    EventInternalDto getEvent(@PathVariable("eventId") Long eventId);
 
     @GetMapping("/internal/events")
-    List<EventCommentDto> getEvents(@RequestParam List<Long> ids);
+    List<EventInternalDto> getEvents(@RequestParam List<Long> ids);
+
+    @GetMapping("/internal/events/check/{eventId}")
+    void checkEvent(@PathVariable("eventId") Long userId);
 }

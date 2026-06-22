@@ -7,7 +7,7 @@ import org.springframework.stereotype.Service;
 import ru.practicum.client.EventClient;
 import ru.practicum.client.UserClient;
 import ru.practicum.dto.comment.*;
-import ru.practicum.dto.event.EventCommentDto;
+import ru.practicum.dto.event.EventInternalDto;
 import ru.practicum.dto.event.EventState;
 import ru.practicum.dto.user.UserDto;
 import ru.practicum.exception.ConflictException;
@@ -34,7 +34,7 @@ public class CommentFacadeImpl implements CommentFacade {
                 userId, dto);
 
         userClient.checkUser(userId);
-        EventCommentDto event = eventClient.getEvent(eventId);
+        EventInternalDto event = eventClient.getEvent(eventId);
 
         if (event.getState() != EventState.PUBLISHED) {
             throw new ConflictException("Нельзя написать комментарий на неопубликованное событие.");
@@ -64,7 +64,7 @@ public class CommentFacadeImpl implements CommentFacade {
         List<Comment> comments = service.getComments(params, pageable);
 
         Map<Long, UserDto> users = getUsers(comments);
-        Map<Long, EventCommentDto> events = getEvents(comments);
+        Map<Long, EventInternalDto> events = getEvents(comments);
 
         List<CommentFullDto> result = comments.stream()
                 .map(c -> {
@@ -85,7 +85,7 @@ public class CommentFacadeImpl implements CommentFacade {
         Comment comment = service.getCommentById(commentId);
 
         UserDto author = userClient.getUser(comment.getAuthorId());
-        EventCommentDto event = eventClient.getEvent(comment.getEventId());
+        EventInternalDto event = eventClient.getEvent(comment.getEventId());
 
         CommentFullDto result = commentMapper.toCommentFullDto(comment);
         result.setAuthor(author);
@@ -110,7 +110,7 @@ public class CommentFacadeImpl implements CommentFacade {
                 .collect(Collectors.toMap(UserDto::getId, u -> u));
     }
 
-    private Map<Long, EventCommentDto> getEvents(List<Comment> comments) {
+    private Map<Long, EventInternalDto> getEvents(List<Comment> comments) {
         List<Long> eventIds = comments.stream()
                 .map(Comment::getEventId)
                 .distinct()
@@ -118,6 +118,6 @@ public class CommentFacadeImpl implements CommentFacade {
 
         return eventClient.getEvents(eventIds)
                 .stream()
-                .collect(Collectors.toMap(EventCommentDto::getId, e -> e));
+                .collect(Collectors.toMap(EventInternalDto::getId, e -> e));
     }
 }

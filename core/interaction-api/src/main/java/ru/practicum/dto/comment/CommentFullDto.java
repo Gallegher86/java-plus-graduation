@@ -4,7 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import ru.practicum.dto.event.EventCommentDto;
+import ru.practicum.dto.event.EventInternalDto;
 import ru.practicum.dto.user.UserDto;
 
 import java.time.LocalDateTime;
@@ -18,6 +18,6 @@ public class CommentFullDto {
     private LocalDateTime createdOn;
     private String text;
     private UserDto author;
-    private EventCommentDto event;
+    private EventInternalDto event;
     private CommentState state;
 }
