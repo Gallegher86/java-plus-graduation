@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.dto.user.UserDto;
+import ru.practicum.dto.user.UserShortDto;
 import ru.practicum.service.UserService;
 
 import java.util.List;
@@ -25,14 +26,13 @@ public class UserInternalController {
         return userService.getUsers(ids);
     }
 
-    @GetMapping("/check/{userId}")
-    public void checkUser(@PathVariable("userId") Long userId) {
-        userService.checkUser(userId);
+    @GetMapping("/short")
+    public List<UserShortDto> getUsersShort(@RequestParam List<Long> ids) {
+        return userService.getUsersShort(ids);
     }
 
     @GetMapping("/check/{userId}")
-    public ResponseEntity<Void> checkUser(@PathVariable("userId") Long userId) {
+    public void checkUser(@PathVariable("userId") Long userId) {
         userService.checkUser(userId);
-        return ResponseEntity.ok().build();
     }
 }

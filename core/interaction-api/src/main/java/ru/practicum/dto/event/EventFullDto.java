@@ -9,8 +9,6 @@ import lombok.NoArgsConstructor;
 import ru.practicum.dto.category.CategoryDto;
 import ru.practicum.dto.comment.CommentEventDto;
 import ru.practicum.dto.user.UserShortDto;
-
-import javax.xml.stream.Location;
 import java.time.LocalDateTime;
 import java.util.List;
 

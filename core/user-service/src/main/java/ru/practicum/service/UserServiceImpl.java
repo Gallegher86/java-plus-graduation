@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.dto.user.NewUserRequest;
 import ru.practicum.dto.user.UserDto;
+import ru.practicum.dto.user.UserShortDto;
 import ru.practicum.exception.ConflictException;
 import ru.practicum.exception.NotFoundException;
 import ru.practicum.mapper.UserMapper;
@@ -88,6 +89,18 @@ public class UserServiceImpl implements UserService {
         log.info("Пользователи с IDs {} найдены", ids);
         return users.stream()
                 .map(userMapper::toUserDto)
+                .toList();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<UserShortDto> getUsersShort(List<Long> ids) {
+        log.info("Запрос на получение пользователей с IDs {} в формате UserShortDto", ids);
+        List<User> users = userRepository.findAllById(ids);
+        validateUserIds(ids, users);
+        log.info("Пользователи с IDs {} найдены, выдача в формате UserShortDto", ids);
+        return users.stream()
+                .map(userMapper::toUserShortDto)
                 .toList();
     }
 
