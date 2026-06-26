@@ -116,7 +116,9 @@ public class CompilationFacadeImpl implements CompilationFacade {
         return events.stream()
                 .map(event -> eventMapper.toEventShortDto(
                         event,
-                        initiatorsMap.get(event.getInitiatorId())
+                        initiatorsMap.get(event.getInitiatorId()),
+                        0,
+                        0
                 ))
                 .toList();
     }

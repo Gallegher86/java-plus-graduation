@@ -16,6 +16,8 @@ public interface UserService {
 
     UserDto getUser(Long id);
 
+    UserShortDto getUserShort(Long id);
+
     List<UserDto> getUsers(List<Long> ids);
 
     List<UserShortDto> getUsersShort(List<Long> ids);

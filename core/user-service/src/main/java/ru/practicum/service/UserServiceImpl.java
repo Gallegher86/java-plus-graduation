@@ -82,6 +82,16 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional(readOnly = true)
+    public UserShortDto getUserShort(Long id) {
+        log.info("Запрос на получение пользователя с ID {} в формате UserShortDto", id);
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("Пользователь c ID " + id + " не найден"));
+        log.info("Пользователь с ID {} найден, выдача в формате UserShortDto", id);
+        return userMapper.toUserShortDto(user);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
     public List<UserDto> getUsers(List<Long> ids) {
         log.info("Запрос на получение пользователей с IDs {}", ids);
         List<User> users = userRepository.findAllById(ids);

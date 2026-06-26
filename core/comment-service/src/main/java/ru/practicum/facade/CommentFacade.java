@@ -4,6 +4,7 @@ import org.springframework.data.domain.Pageable;
 import ru.practicum.dto.comment.*;
 
 import java.util.List;
+import java.util.Map;
 
 public interface CommentFacade {
     CommentShortDto createComment(Long userId, Long eventId, NewCommentDto dto);
@@ -14,7 +15,11 @@ public interface CommentFacade {
 
     List<CommentShortDto> approveComments(CommentStatusUpdateRequest request);
 
-    List<CommentFullDto> getComments(AdminCommentFilterParams params, Pageable pageable);
+    List<CommentFullDto> getCommentsForAdmin(AdminCommentFilterParams params, Pageable pageable);
+
+    List<CommentEventDto> getCommentsForEvent(Long eventId);
+
+    Map<Long, List<CommentEventDto>> getCommentsForEvents(List<Long> eventIds);
 
     CommentFullDto getCommentById(Long commentId);
 

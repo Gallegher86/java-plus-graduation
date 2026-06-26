@@ -3,10 +3,10 @@ server:
 
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:6433/comment
-    username: user
-    password: password
-    driver-class-name: org.postgresql.Driver
+    url: jdbc:h2:mem:event
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
 
   sql:
     init:
@@ -18,7 +18,7 @@ spring:
     properties:
       hibernate:
         format_sql: true
-        dialect: org.hibernate.dialect.PostgreSQLDialect
+        dialect: org.hibernate.dialect.H2Dialect
 
 logging:
   level:

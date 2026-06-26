@@ -21,6 +21,11 @@ public class UserInternalController {
         return userService.getUser(userId);
     }
 
+    @GetMapping("/short/{userId}")
+    public UserShortDto getUserShort(@PathVariable("userId") Long userId) {
+        return userService.getUserShort(userId);
+    }
+
     @GetMapping
     public List<UserDto> getUsers(@RequestParam List<Long> ids) {
         return userService.getUsers(ids);

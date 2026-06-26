@@ -34,7 +34,7 @@ public class CommentAdminController {
     }
 
     @GetMapping
-    public List<CommentFullDto> getComments(
+    public List<CommentFullDto> getCommentsForAdmin(
             @RequestParam(required = false) Set<Long> comments,
             @RequestParam(required = false) Set<Long> authors,
             @RequestParam(required = false) Set<Long> events,
@@ -62,7 +62,7 @@ public class CommentAdminController {
 
         Pageable pageable = makePageable(from, size, sort);
 
-        return commentFacade.getComments(params, pageable);
+        return commentFacade.getCommentsForAdmin(params, pageable);
     }
 
     @GetMapping("/{commentId}")

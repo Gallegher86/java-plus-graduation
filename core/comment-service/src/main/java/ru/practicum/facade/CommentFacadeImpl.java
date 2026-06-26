@@ -15,6 +15,7 @@ import ru.practicum.mapper.CommentMapper;
 import ru.practicum.model.Comment;
 import ru.practicum.service.CommentService;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -59,9 +60,14 @@ public class CommentFacadeImpl implements CommentFacade {
     }
 
     @Override
-    public List<CommentFullDto> getComments(AdminCommentFilterParams params, Pageable pageable) {
+    public List<CommentFullDto> getCommentsForAdmin(AdminCommentFilterParams params, Pageable pageable) {
         log.info("CommentService: получен запрос админа на получение комментариев.");
-        List<Comment> comments = service.getComments(params, pageable);
+        List<Comment> comments = service.getCommentsForAdmin(params, pageable);
+
+        if (comments.isEmpty()) {
+            log.info("CommentService: Выдан список из 0 комментариев.");
+            return List.of();
+        }
 
         Map<Long, UserDto> users = getUsers(comments);
         Map<Long, EventInternalDto> events = getEvents(comments);
@@ -76,6 +82,54 @@ public class CommentFacadeImpl implements CommentFacade {
                 .toList();
 
         log.info("CommentService: Выдан список из {} комментариев.", result.size());
+        return result;
+    }
+
+    @Override
+    public List<CommentEventDto> getCommentsForEvent(Long eventId) {
+        log.info("CommentService: получен запрос на получение комментариев к эвенту {}.", eventId);
+        List<Comment> comments = service.getCommentsByEventId(eventId);
+
+        if (comments.isEmpty()) {
+            log.info("CommentService: Выдан список из 0 комментариев.");
+            return List.of();
+        }
+
+        Map<Long, UserDto> users = getUsers(comments);
+
+        List<CommentEventDto> result = comments.stream()
+                .map(c -> {
+                    CommentEventDto dto = commentMapper.toCommentEventDto(c);
+                    dto.setAuthorName(users.get(c.getAuthorId()).getName());
+                    return dto;
+                })
+                .toList();
+
+        log.info("CommentService: Выдан список из {} комментариев.", result.size());
+        return result;
+    }
+
+    @Override
+    public Map<Long, List<CommentEventDto>> getCommentsForEvents(List<Long> eventIds) {
+        log.info("CommentService: получен запрос на комментарии для событий {}.", eventIds);
+
+        List<Comment> comments = service.getCommentsByEventIds(eventIds);
+
+        if (comments.isEmpty()) {
+            log.info("CommentService: Выдана мапа с 0 комментариев.");
+            return Collections.emptyMap();
+        }
+
+        Map<Long, UserDto> users = getUsers(comments);
+
+        Map<Long, List<CommentEventDto>> result = comments.stream()
+                .map(c -> {
+                    CommentEventDto dto = commentMapper.toCommentEventDto(c);
+                    dto.setAuthorName(users.get(c.getAuthorId()).getName());
+                    return dto;
+                })
+                .collect(Collectors.groupingBy(CommentEventDto::getEventId));
+        log.info("CommentService: Выдана мапа с {} комментариев.", result.size());
         return result;
     }
 

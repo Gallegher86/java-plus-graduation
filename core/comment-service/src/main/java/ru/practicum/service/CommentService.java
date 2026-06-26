@@ -15,9 +15,13 @@ public interface CommentService {
 
     List<CommentShortDto> approveComments(CommentStatusUpdateRequest request);
 
-    List<Comment> getComments(AdminCommentFilterParams params, Pageable pageable);
+    List<Comment> getCommentsForAdmin(AdminCommentFilterParams params, Pageable pageable);
+
+    List<Comment> getCommentsByEventId(Long eventId);
 
     Comment getCommentById(Long commentId);
+
+    List<Comment> getCommentsByEventIds(List<Long> eventIds);
 
     void deleteByAdmin(Long commentId);
 }

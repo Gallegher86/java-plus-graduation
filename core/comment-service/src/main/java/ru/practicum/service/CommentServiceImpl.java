@@ -122,14 +122,24 @@ public class CommentServiceImpl implements CommentService {
     }
 
     @Override
-    public List<Comment> getComments(AdminCommentFilterParams params, Pageable pageable) {
+    public List<Comment> getCommentsForAdmin(AdminCommentFilterParams params, Pageable pageable) {
         BooleanExpression predicate = buildPredicate(params);
         return repository.findAll(predicate, pageable).getContent();
     }
 
     @Override
+    public List<Comment> getCommentsByEventId(Long eventId) {
+        return repository.findByEventId(eventId);
+    }
+
+    @Override
     public Comment getCommentById(Long commentId) {
         return getCommentOrThrow(commentId);
+    }
+
+    @Override
+    public List<Comment> getCommentsByEventIds(List<Long> eventIds) {
+        return repository.findByEventIdIn(eventIds);
     }
 
     @Override

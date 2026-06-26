@@ -4,14 +4,20 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import ru.practicum.dto.event.EventRequestStatusUpdateRequest;
 import ru.practicum.dto.request.ParticipationRequestDto;
 import ru.practicum.dto.request.RequestStatus;
 import ru.practicum.exception.ConditionsNotMetException;
+import ru.practicum.exception.ConflictException;
 import ru.practicum.exception.NotFoundException;
 import ru.practicum.mapper.RequestMapper;
 import ru.practicum.model.Request;
 import ru.practicum.repository.RequestRepository;
+
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -55,12 +61,68 @@ public class RequestServiceImpl implements RequestService {
     }
 
     @Override
-    public int getConfirmedCount(Long eventId) {
-        return (int) repository.countByEventIdAndStatus(eventId, RequestStatus.CONFIRMED);
+    public int getConfirmedCountForEvent(Long eventId) {
+        return repository.confirmedCountForEvent(eventId);
+    }
+
+    @Override
+    public Map<Long, Integer> getConfirmedCountForEvents(List<Long> eventIds) {
+        return repository.confirmedCountForEvents(eventIds);
+    }
+
+    @Override
+    public List<ParticipationRequestDto> getEventRequests(Long eventId) {
+        return repository.findAllByEventId(eventId)
+                .stream()
+                .map(requestMapper::toParticipantRequestDto)
+                .toList();
+    }
+
+    @Override
+    public List<ParticipationRequestDto> getRequestsByIds(List<Long> requestIds) {
+        List<Request> requests = repository.findRequestsByIds(requestIds);
+
+        Set<Long> foundIds = requests.stream()
+                .map(Request::getId)
+                .collect(Collectors.toSet());
+
+        List<Long> missingIds = requestIds.stream()
+                .filter(id -> !foundIds.contains(id))
+                .toList();
+
+        if (!missingIds.isEmpty()) {
+            throw new NotFoundException(
+                    "Не найдены заявки с id: " + missingIds
+            );
+        }
+
+        return requests.stream()
+                .map(requestMapper::toParticipantRequestDto)
+                .toList();
+    }
+
+    @Override
+    public void updateRequestsStatus(Long eventId, EventRequestStatusUpdateRequest request) {
+        List<Request> requests = repository.findRequestsByIds(request.getRequestIds());
+
+        if (requests.size() != request.getRequestIds().size()) {
+            throw new NotFoundException("Одна или несколько заявок не найдены");
+        }
+
+        for (Request entity : requests) {
+            if (!eventId.equals(entity.getEventId())) {
+                throw new ConflictException(
+                        "Заявка id=" + entity.getId()
+                                + " не относится к событию id=" + eventId
+                );
+            }
+
+            entity.setStatus(request.getStatus());
+        }
     }
 
     @Override
     public boolean checkRequestExists(Long userId, Long eventId) {
-        return repository.existsByEventIdAndRequesterId(eventId, userId);
+        return repository.existsByRequesterIdAndEventId(userId, eventId);
     }
 }

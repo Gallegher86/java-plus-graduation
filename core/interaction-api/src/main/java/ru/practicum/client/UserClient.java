@@ -16,6 +16,9 @@ public interface UserClient {
     @GetMapping("/internal/users/{userId}")
     UserDto getUser(@PathVariable("userId") Long userId);
 
+    @GetMapping("/internal/users/short/{userId}")
+    UserShortDto getUserShort(@PathVariable("userId") Long userId);
+
     @GetMapping("/internal/users")
     List<UserDto> getUsers(@RequestParam List<Long> ids);
 
