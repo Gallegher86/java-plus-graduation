@@ -25,6 +25,7 @@ public interface EventMapper {
     Event toEvent(NewEventDto dto);
 
     @Mapping(target = "id", source = "event.id")
+    @Mapping(target = "participantLimit", source = "event.partLimit")
     @Mapping(target = "confirmedRequests", source = "confirmedRequests")
     @Mapping(target = "location", source = "event")
     @Mapping(target = "views", source = "views")
@@ -35,6 +36,9 @@ public interface EventMapper {
                                 int confirmedRequests,
                                 int views,
                                 List<CommentEventDto> comments);
+
+    @Mapping(target = "participantLimit", source = "partLimit")
+    EventInternalDto toEventInternalDto(Event event);
 
     @Mapping(target = "id", source = "event.id")
     @Mapping(target = "confirmedRequests", source = "confirmedRequests")

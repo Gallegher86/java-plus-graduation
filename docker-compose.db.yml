@@ -9,12 +9,52 @@ services:
     ports:
       - "5432:5432"
 
-  ewm-db:
+  ewm-db-main:
     image: postgres:16.1
-    container_name: ewm-db
+    container_name: ewm-db-main
     environment:
-      POSTGRES_USER: main
-      POSTGRES_PASSWORD: main
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
       POSTGRES_DB: main
     ports:
       - "6432:5432"
+
+  ewm-db-comment:
+    image: postgres:16.1
+    container_name: ewm-db-comment
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: comment
+    ports:
+      - "6433:5432"
+
+  ewm-db-event:
+    image: postgres:16.1
+    container_name: ewm-db-event
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: event
+    ports:
+      - "6434:5432"
+
+  ewm-db-request:
+    image: postgres:16.1
+    container_name: ewm-db-request
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: request
+    ports:
+      - "6435:5432"
+
+  ewm-db-user:
+    image: postgres:16.1
+    container_name: ewm-db-user
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: user
+    ports:
+      - "6436:5432"

@@ -4,8 +4,8 @@ server:
 spring:
   datasource:
     url: jdbc:postgresql://localhost:6432/main
-    username: main
-    password: main
+    username: user
+    password: password
     driver-class-name: org.postgresql.Driver
 
   sql:

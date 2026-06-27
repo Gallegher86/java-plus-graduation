@@ -5,11 +5,14 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 import ru.practicum.client.config.FeignConfig;
+import ru.practicum.client.fallback.EventClientFallbackFactory;
 import ru.practicum.dto.event.EventInternalDto;
 
 import java.util.List;
 
-@FeignClient(name = "event-service", configuration = FeignConfig.class)
+@FeignClient(name = "event-service",
+        configuration = FeignConfig.class,
+        fallbackFactory = EventClientFallbackFactory.class)
 public interface EventClient {
 
     @GetMapping("/internal/events/{eventId}")
@@ -17,7 +20,4 @@ public interface EventClient {
 
     @GetMapping("/internal/events")
     List<EventInternalDto> getEvents(@RequestParam List<Long> ids);
-
-    @GetMapping("/internal/events/check/{eventId}")
-    void checkEvent(@PathVariable("eventId") Long userId);
 }

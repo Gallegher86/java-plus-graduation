@@ -4,8 +4,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-import ru.practicum.client.EventClient;
-import ru.practicum.client.UserClient;
 import ru.practicum.dto.comment.*;
 import ru.practicum.dto.event.EventInternalDto;
 import ru.practicum.dto.event.EventState;
@@ -24,8 +22,8 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class CommentFacadeImpl implements CommentFacade {
-    private final EventClient eventClient;
-    private final UserClient userClient;
+    private final EventClientFacade eventClient;
+    private final UserClientFacade userClient;
     private final CommentService service;
     private final CommentMapper commentMapper;
 

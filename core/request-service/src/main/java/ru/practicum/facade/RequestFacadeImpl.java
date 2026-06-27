@@ -3,8 +3,6 @@ package ru.practicum.facade;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import ru.practicum.client.EventClient;
-import ru.practicum.client.UserClient;
 import ru.practicum.dto.event.EventInternalDto;
 import ru.practicum.dto.event.EventRequestStatusUpdateRequest;
 import ru.practicum.dto.event.EventState;
@@ -23,8 +21,8 @@ import java.util.Map;
 @Service
 @RequiredArgsConstructor
 public class RequestFacadeImpl implements RequestFacade {
-    private final UserClient userClient;
-    private final EventClient eventClient;
+    private final UserClientFacade userClient;
+    private final EventClientFacade eventClient;
     private final RequestService requestService;
 
     @Override

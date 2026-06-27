@@ -21,6 +21,8 @@ import ru.practicum.exception.NotFoundException;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import static ru.practicum.event.model.QEvent.event;
 
@@ -243,6 +245,33 @@ public class EventServiceImpl implements EventService {
         }
 
         return event;
+    }
+
+    @Override
+    public EventInternalDto getEvent(Long eventId) {
+        Event event = getEventOrThrow(eventId);
+        return eventMapper.toEventInternalDto(event);
+    }
+
+    @Override
+    public List<EventInternalDto> getEvents(List<Long> ids) {
+        List<Event> events = eventRepository.findAllById(ids);
+
+        if (events.size() != ids.size()) {
+            Set<Long> foundIds = events.stream()
+                    .map(Event::getId)
+                    .collect(Collectors.toSet());
+
+            List<Long> missingIds = ids.stream()
+                    .filter(id -> !foundIds.contains(id))
+                    .toList();
+
+            throw new NotFoundException("События с id " + missingIds + " не найдены.");
+        }
+
+        return events.stream()
+                .map(eventMapper::toEventInternalDto)
+                .toList();
     }
 
     // HELPERS: предикаты

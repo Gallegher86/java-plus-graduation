@@ -5,9 +5,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import ru.practicum.StatsClient;
-import ru.practicum.client.CommentClient;
-import ru.practicum.client.RequestClient;
-import ru.practicum.client.UserClient;
 import ru.practicum.dto.comment.CommentEventDto;
 import ru.practicum.dto.event.*;
 import ru.practicum.dto.request.ParticipationRequestDto;
@@ -31,10 +28,10 @@ import java.util.stream.Collectors;
 public class EventFacadeImpl implements EventFacade {
     private final EventService eventService;
     private final EventMapper eventMapper;
-    private final UserClient userClient;
+    private final UserClientFacade userClient;
     private final StatsClient statsClient;
-    private final RequestClient requestClient;
-    private final CommentClient commentClient;
+    private final RequestClientFacade requestClient;
+    private final CommentClientFacade commentClient;
 
     @Override
     public List<EventShortDto> getPublicEvents(PublicEventFilterParams params, Pageable pageable) {
@@ -94,6 +91,7 @@ public class EventFacadeImpl implements EventFacade {
         Event event = eventService.updateEventByAdmin(eventId, request);
 
         UserShortDto initiator = userClient.getUserShort(event.getInitiatorId());
+
         int confirmedRequests = requestClient.getConfirmedCountForEvent(eventId);
         int views = fetchViewsForSingleEvent(event);
         List<CommentEventDto> comments = commentClient.getCommentsForEvent(eventId);
@@ -152,6 +150,7 @@ public class EventFacadeImpl implements EventFacade {
         Event event = eventService.updateEventByUser(userId, eventId, request);
 
         UserShortDto initiator = userClient.getUserShort(event.getInitiatorId());
+
         int confirmedRequests = requestClient.getConfirmedCountForEvent(eventId);
         int views = fetchViewsForSingleEvent(event);
         List<CommentEventDto> comments = commentClient.getCommentsForEvent(eventId);
@@ -236,6 +235,16 @@ public class EventFacadeImpl implements EventFacade {
                 .confirmedRequests(confirmed)
                 .rejectedRequests(rejected)
                 .build();
+    }
+
+    @Override
+    public EventInternalDto getEvent(Long eventId) {
+        return eventService.getEvent(eventId);
+    }
+
+    @Override
+    public List<EventInternalDto> getEvents(List<Long> ids) {
+        return eventService.getEvents(ids);
     }
 
     //  HELPERS: просмотры

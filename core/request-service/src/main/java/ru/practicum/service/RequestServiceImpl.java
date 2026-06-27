@@ -102,6 +102,7 @@ public class RequestServiceImpl implements RequestService {
     }
 
     @Override
+    @Transactional
     public void updateRequestsStatus(Long eventId, EventRequestStatusUpdateRequest request) {
         List<Request> requests = repository.findRequestsByIds(request.getRequestIds());
 

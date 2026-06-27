@@ -37,4 +37,10 @@ public interface EventFacade {
     EventRequestStatusUpdateResult updateEventRequestsStatus(Long userId,
                                                              Long eventId,
                                                              EventRequestStatusUpdateRequest request);
+
+    // INTERNAl
+
+    EventInternalDto getEvent(Long eventId);
+
+    List<EventInternalDto> getEvents(List<Long> ids);
 }

@@ -33,4 +33,10 @@ public interface EventService {
     Event updateEventByUser(Long userId, Long eventId, UpdateEventUserRequest request);
 
     Event getEventForRequestsOrThrow(Long userId, Long eventId);
+
+    // INTERNAL
+
+    EventInternalDto getEvent(Long eventId);
+
+    List<EventInternalDto> getEvents(List<Long> ids);
 }
