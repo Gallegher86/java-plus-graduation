@@ -9,16 +9,6 @@ services:
     ports:
       - "5432:5432"
 
-  ewm-db-main:
-    image: postgres:16.1
-    container_name: ewm-db-main
-    environment:
-      POSTGRES_USER: user
-      POSTGRES_PASSWORD: password
-      POSTGRES_DB: main
-    ports:
-      - "6432:5432"
-
   ewm-db-comment:
     image: postgres:16.1
     container_name: ewm-db-comment
