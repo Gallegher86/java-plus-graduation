@@ -223,6 +223,30 @@ public class ErrorHandler {
         );
     }
 
+    @ExceptionHandler(ServiceUnavailableException.class)
+    @ResponseStatus(HttpStatus.SERVICE_UNAVAILABLE)
+    public ApiError handleServiceUnavailableException(ServiceUnavailableException ex) {
+        log.error("Внешний сервис недоступен: {}", ex.getMessage(), ex);
+
+        StringWriter sw = new StringWriter();
+        PrintWriter pw = new PrintWriter(sw);
+        ex.printStackTrace(pw);
+        String stackTrace = sw.toString();
+
+        List<String> errorDetails = List.of(
+                ex.getMessage(),
+                "Stack trace: " + stackTrace
+        );
+
+        return new ApiError(
+                "Сервис временно недоступен.",
+                "Service unavailable",
+                503,
+                LocalDateTime.now(),
+                errorDetails
+        );
+    }
+
     private String formatFieldError(FieldError error) {
         return String.format("Поле '%s': %s", error.getField(), error.getDefaultMessage());
     }

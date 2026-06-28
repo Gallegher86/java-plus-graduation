@@ -1,17 +1,19 @@
 services:
-  stats-server:
-    build: stats/stats-server
-    image: stats-server
-    container_name: stats-server
+  discovery-server:
+    build: infra/discovery-server
+    container_name: discovery-server
     ports:
-      - "9090:9090"
-    environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://stats-db:5432/stat
-      SPRING_DATASOURCE_USERNAME: stat
-      SPRING_DATASOURCE_PASSWORD: stat
-      SPRING_PROFILES_ACTIVE: docker
+      - "8761:8761"
+
+  config-server:
+    build: infra/config-server
+    container_name: config-server
     depends_on:
-      - stats-db
+      - discovery-server
+    environment:
+      - EUREKA_URI=http://discovery-server:8761/eureka/
+    ports:
+      - "8888:8888"
 
   stats-db:
     image: postgres:16.1
@@ -23,26 +25,123 @@ services:
     ports:
       - "5432:5432"
 
-  ewm-service:
-    build: main-service
-    image: main-service
-    ports:
-      - "8080:8080"
+  ewm-db-user:
+    image: postgres:16.1
+    container_name: ewm-db-user
     environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://ewm-db:5432/main
-      SPRING_DATASOURCE_USERNAME: main
-      SPRING_DATASOURCE_PASSWORD: main
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: user
+    ports:
+      - "6436:5432"
+
+  ewm-db-event:
+    image: postgres:16.1
+    container_name: ewm-db-event
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: event
+    ports:
+      - "6434:5432"
+
+  ewm-db-request:
+    image: postgres:16.1
+    container_name: ewm-db-request
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: request
+    ports:
+      - "6435:5432"
+
+  ewm-db-comment:
+    image: postgres:16.1
+    container_name: ewm-db-comment
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: comment
+    ports:
+      - "6433:5432"
+
+  stats-server:
+    build: stats/stats-server
+    container_name: stats-server
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://stats-db:5432/stat
+      SPRING_DATASOURCE_USERNAME: stat
+      SPRING_DATASOURCE_PASSWORD: stat
       SPRING_PROFILES_ACTIVE: docker
     depends_on:
-      - ewm-db
-      - stats-server
+      - stats-db
+      - discovery-server
+      - config-server
 
-  ewm-db:
-    image: postgres:16.1
-    container_name: ewm-db
+  user-service:
+    build: core/user-service
+    container_name: user-service
     environment:
-      POSTGRES_USER: main
-      POSTGRES_PASSWORD: main
-      POSTGRES_DB: main
+      SPRING_DATASOURCE_URL: jdbc:postgresql://ewm-db-user:5432/user
+      SPRING_DATASOURCE_USERNAME: user
+      SPRING_DATASOURCE_PASSWORD: password
+      SPRING_PROFILES_ACTIVE: docker
+    depends_on:
+      - ewm-db-user
+      - discovery-server
+      - config-server
+
+  event-service:
+    build: core/event-service
+    container_name: event-service
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://ewm-db-event:5432/event
+      SPRING_DATASOURCE_USERNAME: user
+      SPRING_DATASOURCE_PASSWORD: password
+      SPRING_PROFILES_ACTIVE: docker
+    depends_on:
+      - ewm-db-event
+      - discovery-server
+      - config-server
+
+  request-service:
+    build: core/request-service
+    container_name: request-service
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://ewm-db-request:5432/request
+      SPRING_DATASOURCE_USERNAME: user
+      SPRING_DATASOURCE_PASSWORD: password
+      SPRING_PROFILES_ACTIVE: docker
+    depends_on:
+      - ewm-db-request
+      - discovery-server
+      - config-server
+
+  comment-service:
+    build: core/comment-service
+    container_name: comment-service
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://ewm-db-comment:5432/comment
+      SPRING_DATASOURCE_USERNAME: user
+      SPRING_DATASOURCE_PASSWORD: password
+      SPRING_PROFILES_ACTIVE: docker
+    depends_on:
+      - ewm-db-comment
+      - discovery-server
+      - config-server
+
+  gateway-server:
+    build: infra/gateway-server
+    container_name: gateway-server
     ports:
-      - "6432:5432"
+      - "8080:8080"
+    depends_on:
+      - discovery-server
+      - config-server
+      - stats-server
+      - user-service
+      - event-service
+      - request-service
+      - comment-service
+    environment:
+      - EUREKA_URI=http://discovery-server:8761/eureka/

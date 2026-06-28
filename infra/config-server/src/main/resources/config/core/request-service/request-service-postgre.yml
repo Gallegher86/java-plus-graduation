@@ -29,6 +29,10 @@ spring:
           failure-rate-threshold: 50
           wait-duration-in-open-state: 10s
           permitted-number-of-calls-in-half-open-state: 3
+          ignoreExceptions:
+            - ru.practicum.exception.NotFoundException
+            - ru.practicum.exception.BadRequestException
+            - ru.practicum.exception.ConflictException
 
         userService:
           sliding-window-size: 10
@@ -36,6 +40,10 @@ spring:
           failure-rate-threshold: 50
           wait-duration-in-open-state: 10s
           permitted-number-of-calls-in-half-open-state: 3
+          ignoreExceptions:
+            - ru.practicum.exception.NotFoundException
+            - ru.practicum.exception.BadRequestException
+            - ru.practicum.exception.ConflictException
 
 logging:
   level:
