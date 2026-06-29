@@ -73,30 +73,28 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional(readOnly = true)
     public UserDto getUser(Long id) {
-        log.info("Запрос на получение пользователя с ID {}", id);
-        User user = userRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("Пользователь c ID " + id + " не найден"));
-        log.info("Пользователь с ID {} найден", id);
+        log.debug("Запрос на получение пользователя с ID {}", id);
+        User user = findUserOrThrow(id);
+        log.debug("Пользователь с ID {} найден", id);
         return userMapper.toUserDto(user);
     }
 
     @Override
     @Transactional(readOnly = true)
     public UserShortDto getUserShort(Long id) {
-        log.info("Запрос на получение пользователя с ID {} в формате UserShortDto", id);
-        User user = userRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("Пользователь c ID " + id + " не найден"));
-        log.info("Пользователь с ID {} найден, выдача в формате UserShortDto", id);
+        log.debug("Запрос на получение пользователя с ID {} в формате UserShortDto", id);
+        User user = findUserOrThrow(id);
+        log.debug("Пользователь с ID {} найден, выдача в формате UserShortDto", id);
         return userMapper.toUserShortDto(user);
     }
 
     @Override
     @Transactional(readOnly = true)
     public List<UserDto> getUsers(List<Long> ids) {
-        log.info("Запрос на получение пользователей с IDs {}", ids);
+        log.debug("Запрос на получение пользователей с IDs {}", ids);
         List<User> users = userRepository.findAllById(ids);
         validateUserIds(ids, users);
-        log.info("Пользователи с IDs {} найдены", ids);
+        log.debug("Пользователи с IDs {} найдены", ids);
         return users.stream()
                 .map(userMapper::toUserDto)
                 .toList();
@@ -105,10 +103,10 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional(readOnly = true)
     public List<UserShortDto> getUsersShort(List<Long> ids) {
-        log.info("Запрос на получение пользователей с IDs {} в формате UserShortDto", ids);
+        log.debug("Запрос на получение пользователей с IDs {} в формате UserShortDto", ids);
         List<User> users = userRepository.findAllById(ids);
         validateUserIds(ids, users);
-        log.info("Пользователи с IDs {} найдены, выдача в формате UserShortDto", ids);
+        log.debug("Пользователи с IDs {} найдены, выдача в формате UserShortDto", ids);
         return users.stream()
                 .map(userMapper::toUserShortDto)
                 .toList();
@@ -116,7 +114,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public void checkUser(Long id) {
-        log.info("Запрос на проверку существования пользователя с ID {}", id);
+        log.debug("Запрос на проверку существования пользователя с ID {}", id);
 
         if (!userRepository.existsById(id)) {
             throw new NotFoundException("Пользователь c ID " + id + " не найден.");
@@ -137,5 +135,10 @@ public class UserServiceImpl implements UserService {
         if (!missingIds.isEmpty()) {
             throw new NotFoundException("Пользователи не найдены: " + missingIds);
         }
+    }
+
+    private User findUserOrThrow(Long id) {
+        return userRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("Пользователь c ID " + id + " не найден"));
     }
 }

@@ -135,6 +135,10 @@ services:
     depends_on:
       ewm-db-user:
         condition: service_healthy
+      discovery-server:
+        condition: service_healthy
+      config-server:
+        condition: service_healthy
     environment:
       - SPRING_DATASOURCE_URL=jdbc:postgresql://ewm-db-user:5432/user
       - SPRING_DATASOURCE_USERNAME=user
@@ -155,6 +159,10 @@ services:
     container_name: event-service
     depends_on:
       ewm-db-event:
+        condition: service_healthy
+      discovery-server:
+        condition: service_healthy
+      config-server:
         condition: service_healthy
     environment:
       - SPRING_DATASOURCE_URL=jdbc:postgresql://ewm-db-event:5432/event
@@ -178,6 +186,10 @@ services:
     depends_on:
       ewm-db-request:
         condition: service_healthy
+      discovery-server:
+        condition: service_healthy
+      config-server:
+        condition: service_healthy
     environment:
       - SPRING_DATASOURCE_URL=jdbc:postgresql://ewm-db-request:5432/request
       - SPRING_DATASOURCE_USERNAME=user
@@ -198,6 +210,10 @@ services:
     container_name: comment-service
     depends_on:
       ewm-db-comment:
+        condition: service_healthy
+      discovery-server:
+        condition: service_healthy
+      config-server:
         condition: service_healthy
     environment:
       - SPRING_DATASOURCE_URL=jdbc:postgresql://ewm-db-comment:5432/comment
