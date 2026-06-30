@@ -12,27 +12,69 @@ spring:
           enabled: true
 
       routes:
-        - id: main-service-admin
-          uri: lb://main-service
-          predicates:
-            - Path=/admin/**
 
-        - id: main-service-users
-          uri: lb://main-service
+        # ---------------- USER SERVICE ----------------
+        - id: user-admin
+          uri: lb://user-service
           predicates:
-            - Path=/users/**
+            - Path=/admin/users/**
 
-        - id: main-service-events
-          uri: lb://main-service
+        # ---------------- EVENT SERVICE ----------------
+        - id: event-admin
+          uri: lb://event-service
+          predicates:
+            - Path=/admin/events/**
+
+        - id: event-user
+          uri: lb://event-service
+          predicates:
+            - Path=/users/*/events/**
+
+        - id: event-public
+          uri: lb://event-service
           predicates:
             - Path=/events/**
 
-        - id: main-service-categories
-          uri: lb://main-service
+        # ---------------- COMMENT SERVICE ----------------
+        - id: comment-admin
+          uri: lb://comment-service
+          predicates:
+            - Path=/admin/comments/**
+
+        - id: comment-user
+          uri: lb://comment-service
+          predicates:
+            - Path=/users/*/comments/**
+
+        # ---------------- REQUEST SERVICE ----------------
+        - id: request-user
+          uri: lb://request-service
+          predicates:
+            - Path=/users/*/requests/**
+
+        # ---------------- CATEGORY ----------------
+        - id: category-admin
+          uri: lb://event-service
+          predicates:
+            - Path=/admin/categories/**
+
+        - id: category-public
+          uri: lb://event-service
           predicates:
             - Path=/categories/**
 
-        - id: main-service-compilations
-          uri: lb://main-service
+        # ---------------- COMPILATIONS ----------------
+        - id: compilation-admin
+          uri: lb://event-service
+          predicates:
+            - Path=/admin/compilations/**
+
+        - id: compilation-public
+          uri: lb://event-service
           predicates:
             - Path=/compilations/**
+
+        - id: stats-route
+          uri: lb://stats-server
+          predicates:
+            - Path=/hit, /stats

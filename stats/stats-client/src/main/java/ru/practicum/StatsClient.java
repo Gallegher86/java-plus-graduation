@@ -73,7 +73,11 @@ public class StatsClient {
     private ServiceInstance getInstance() {
         String serviceId = properties.getServiceId();
 
-        ServiceInstance instance = loadBalancerClient.choose(serviceId);
+        log.info("serviceId = {}", properties.getServiceId());
+
+        ServiceInstance instance = loadBalancerClient.choose(properties.getServiceId());
+
+        log.info("chosen instance = {}", instance);
 
         if (instance == null) {
             throw new StatsServerUnavailable("Stats-server не найден: " + serviceId);
