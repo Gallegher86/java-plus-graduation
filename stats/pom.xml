@@ -18,5 +18,8 @@
 		<module>stats-server</module>
 		<module>stats-dto</module>
 		<module>stats-client</module>
+		<module>schemas</module>
+		<module>collector</module>
+		<module>common</module>
 	</modules>
 </project>
