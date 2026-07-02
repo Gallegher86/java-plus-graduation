@@ -3,8 +3,8 @@ services:
     image: postgres:16.1
     container_name: stats-db
     environment:
-      POSTGRES_USER: stat
-      POSTGRES_PASSWORD: stat
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
       POSTGRES_DB: stat
     ports:
       - "5432:5432"

@@ -21,5 +21,6 @@
 		<module>schemas</module>
 		<module>collector</module>
 		<module>common</module>
+		<module>aggregator</module>
 	</modules>
 </project>
