@@ -26,7 +26,7 @@ public class AnalyzerService {
     private final EventSimilarityRepository eventSimilarityRepository;
     private final UserActionRepository userActionRepository;
 
-    private static final int INTERACTIONS_LIM = 10;
+    private static final int INTERACTIONS_LIM = 20;
     private static final int K_LIM = 5;
 
     @Transactional
