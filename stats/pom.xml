@@ -22,5 +22,6 @@
 		<module>collector</module>
 		<module>common</module>
 		<module>aggregator</module>
+		<module>analyzer</module>
 	</modules>
 </project>

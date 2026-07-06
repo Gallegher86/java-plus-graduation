@@ -1,4 +1,4 @@
-package ru.practicum.service;
+package ru.practicum.constant;
 
 public final class ActionWeight {
     public static final double ACTION_VIEW_WEIGHT = 0.4;

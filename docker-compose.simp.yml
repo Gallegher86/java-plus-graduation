@@ -49,6 +49,16 @@ services:
     ports:
       - "6436:5432"
 
+  ewm-db-analyzer:
+    image: postgres:16.1
+    container_name: ewm-db-analyzer
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: analyzer
+    ports:
+      - "6437:5432"
+
   kafka:
     image: confluentinc/confluent-local:7.4.3
     hostname: kafka

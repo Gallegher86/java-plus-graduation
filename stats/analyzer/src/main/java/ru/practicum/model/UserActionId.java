@@ -1,0 +1,21 @@
+package ru.practicum.model;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Embeddable;
+import lombok.*;
+
+import java.io.Serializable;
+
+@Getter
+@Setter
+@Embeddable
+@NoArgsConstructor
+@AllArgsConstructor
+@EqualsAndHashCode
+public class UserActionId implements Serializable {
+    @Column(name = "user_id", nullable = false)
+    private Long userId;
+
+    @Column(name = "event_id", nullable = false)
+    private Long eventId;
+}
