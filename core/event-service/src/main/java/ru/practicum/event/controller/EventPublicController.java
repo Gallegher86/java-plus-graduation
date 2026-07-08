@@ -28,7 +28,6 @@ import java.util.List;
 @RequestMapping("/events")
 public class EventPublicController {
     private final EventFacade eventFacade;
-    private final CollectorClient collectorClient;
 
     @GetMapping
     public List<EventShortDto> getEvents(
