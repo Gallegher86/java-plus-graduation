@@ -3,7 +3,7 @@ server:
 
 spring:
   datasource:
-    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/request}
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:6435/request}
     username: ${SPRING_DATASOURCE_USERNAME:user}
     password: ${SPRING_DATASOURCE_PASSWORD:password}
     driver-class-name: org.postgresql.Driver
@@ -44,6 +44,14 @@ spring:
             - ru.practicum.exception.NotFoundException
             - ru.practicum.exception.BadRequestException
             - ru.practicum.exception.ConflictException
+
+grpc:
+  client:
+    collector:
+      address: 'discovery:///collector'
+      enableKeepAlive: true
+      keepAliveWithoutCalls: true
+      negotiationType: plaintext
 
 logging:
   level:
