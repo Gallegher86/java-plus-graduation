@@ -12,7 +12,11 @@ public interface EventFacade {
 
     List<EventShortDto> getPublicEvents(PublicEventFilterParams params, Pageable pageable);
 
-    EventFullDto getPublicEvent(Long eventId);
+    EventFullDto getPublicEvent(Long eventId, Long userId);
+
+    List<EventShortDto> getRecommendations(Long userId);
+
+    void likeEvent(Long userId, Long eventId);
 
 
     // ADMIN

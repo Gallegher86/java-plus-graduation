@@ -8,14 +8,15 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import ru.practicum.client.CollectorClient;
 import ru.practicum.dto.event.EventFullDto;
 import ru.practicum.dto.event.EventShortDto;
 import ru.practicum.dto.event.EventSort;
 import ru.practicum.dto.event.PublicEventFilterParams;
 import ru.practicum.event.facade.EventFacade;
-import ru.practicum.event.stats.StatsHitService;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -27,7 +28,7 @@ import java.util.List;
 @RequestMapping("/events")
 public class EventPublicController {
     private final EventFacade eventFacade;
-    private final StatsHitService statsHitService;
+    private final CollectorClient collectorClient;
 
     @GetMapping
     public List<EventShortDto> getEvents(
@@ -58,21 +59,31 @@ public class EventPublicController {
                 .onlyAvailable(onlyAvailable)
                 .sort(sort)
                 .build();
-
-        statsHitService.sendHit(request.getRequestURI(), request.getRemoteAddr());
-
         return eventFacade.getPublicEvents(params, pageable);
     }
 
     @GetMapping("/{id}")
     public EventFullDto getEvent(
             @Positive @PathVariable Long id,
-            HttpServletRequest request
+            @RequestHeader("X-EWM-USER-ID") Long userId
     ) {
         log.info("EventPublicController: GET /events/{}", id);
+        return eventFacade.getPublicEvent(id, userId);
+    }
 
-        statsHitService.sendHit(request.getRequestURI(), request.getRemoteAddr());
+    @GetMapping("/events/recommendations")
+    public List<EventShortDto> getRecommendations(
+            @RequestHeader("X-EWM-USER-ID") Long userId
+    ) {
+        return eventFacade.getRecommendations(userId);
+    }
 
-        return eventFacade.getPublicEvent(id);
+    @PutMapping("/events/{eventId}/like")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void likeEvent(
+            @PathVariable Long eventId,
+            @RequestHeader("X-EWM-USER-ID") Long userId
+    ) {
+        eventFacade.likeEvent(userId, eventId);
     }
 }

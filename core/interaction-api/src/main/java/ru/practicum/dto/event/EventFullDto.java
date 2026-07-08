@@ -52,7 +52,7 @@ public class EventFullDto {
 
     private String title;
 
-    private int views;
+    private double rating;
 
     private List<CommentEventDto> comments;
 }

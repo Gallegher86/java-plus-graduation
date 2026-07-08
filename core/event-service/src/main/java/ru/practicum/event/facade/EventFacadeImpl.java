@@ -4,23 +4,24 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-import ru.practicum.StatsClient;
+import ru.practicum.client.AnalyzerClient;
+import ru.practicum.client.CollectorClient;
 import ru.practicum.dto.comment.CommentEventDto;
 import ru.practicum.dto.event.*;
 import ru.practicum.dto.request.ParticipationRequestDto;
 import ru.practicum.dto.request.RequestStatus;
-import ru.practicum.dto.request.ViewStatsParamDto;
-import ru.practicum.dto.response.ViewStatsDto;
 import ru.practicum.dto.user.UserShortDto;
 import ru.practicum.event.mapper.EventMapper;
 import ru.practicum.event.model.Event;
 import ru.practicum.event.service.EventService;
+import ru.practicum.ewm.stats.proto.analyzer.RecommendedEventProto;
+import ru.practicum.ewm.stats.proto.collector.ActionTypeProto;
 import ru.practicum.exception.ConflictException;
 
-import java.time.LocalDateTime;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 @Slf4j
 @Service
@@ -29,9 +30,12 @@ public class EventFacadeImpl implements EventFacade {
     private final EventService eventService;
     private final EventMapper eventMapper;
     private final UserClientFacade userClient;
-    private final StatsClient statsClient;
     private final RequestClientFacade requestClient;
     private final CommentClientFacade commentClient;
+    private final CollectorClient collectorClient;
+    private final AnalyzerClient analyzerClient;
+
+    private static final int DEFAULT_RECOMMENDATIONS_SIZE = 10;
 
     @Override
     public List<EventShortDto> getPublicEvents(PublicEventFilterParams params, Pageable pageable) {
@@ -43,25 +47,27 @@ public class EventFacadeImpl implements EventFacade {
         }
 
         Map<Long, UserShortDto> users = fetchUsers(events);
-        Map<Long, Integer> views = fetchViews(events);
+        Map<Long, Double> ratings = fetchRatings(events);
         Map<Long, Integer> confirmedRequests = fetchConfirmedRequests(events);
 
-        List<EventShortDto> result = toShortDtos(events, users, views, confirmedRequests);
+        List<EventShortDto> result = toShortDtos(events, users, ratings, confirmedRequests);
         log.info("EventService: найдено {} событий.", result.size());
         return result;
     }
 
     @Override
-    public EventFullDto getPublicEvent(Long eventId) {
+    public EventFullDto getPublicEvent(Long eventId, Long userId) {
         log.info("EventService: получение публичного события id={}", eventId);
+        userClient.checkUser(userId);
         Event event = eventService.getPublicEvent(eventId);
 
         UserShortDto initiator = userClient.getUserShort(event.getInitiatorId());
         int confirmedRequests = requestClient.getConfirmedCountForEvent(eventId);
-        int views = fetchViewsForSingleEvent(event);
+        double rating = fetchRating(eventId);
         List<CommentEventDto> comments = commentClient.getCommentsForEvent(eventId);
 
-        EventFullDto result = eventMapper.toEventFullDto(event, initiator, confirmedRequests, views, comments);
+        EventFullDto result = eventMapper.toEventFullDto(event, initiator, confirmedRequests, rating, comments);
+        collectorClient.sendUserAction(userId, eventId, ActionTypeProto.ACTION_VIEW);
         log.info("EventService: событие id={} получено.", result.getId());
         return result;
     }
@@ -76,12 +82,12 @@ public class EventFacadeImpl implements EventFacade {
         }
 
         Map<Long, UserShortDto> users = fetchUsers(events);
-        Map<Long, Integer> views = fetchViews(events);
+        Map<Long, Double> ratings = fetchRatings(events);
         Map<Long, Integer> confirmedRequests = fetchConfirmedRequests(events);
         Map<Long, List<CommentEventDto>> comments = fetchComments(events);
 
-        List<EventFullDto> result = toFullDtos(events, users, views, confirmedRequests, comments);
-        log.info("EventService: найдено {} событий.", result.size());
+        List<EventFullDto> result = toFullDtos(events, users, ratings, confirmedRequests, comments);
+        log.info("EventService: найдено {} событий для админа.", result.size());
         return result;
     }
 
@@ -93,10 +99,10 @@ public class EventFacadeImpl implements EventFacade {
         UserShortDto initiator = userClient.getUserShort(event.getInitiatorId());
 
         int confirmedRequests = requestClient.getConfirmedCountForEvent(eventId);
-        int views = fetchViewsForSingleEvent(event);
+        double rating = fetchRating(eventId);
         List<CommentEventDto> comments = commentClient.getCommentsForEvent(eventId);
 
-        EventFullDto result = eventMapper.toEventFullDto(event, initiator, confirmedRequests, views, comments);
+        EventFullDto result = eventMapper.toEventFullDto(event, initiator, confirmedRequests, rating, comments);
         log.info("EventService: событие id={} обновлено.", result.getId());
         return result;
     }
@@ -108,7 +114,7 @@ public class EventFacadeImpl implements EventFacade {
 
         Event result = eventService.createEvent(userId, newEventDto);
         log.info("EventService: event c ID {} создан.", result.getId());
-        return eventMapper.toEventFullDto(result, initiator, 0, 0, List.of());
+        return eventMapper.toEventFullDto(result, initiator, 0, 0.0, List.of());
     }
 
     @Override
@@ -121,10 +127,10 @@ public class EventFacadeImpl implements EventFacade {
         }
 
         Map<Long, UserShortDto> users = fetchUsers(events);
-        Map<Long, Integer> views = fetchViews(events);
+        Map<Long, Double> ratings = fetchRatings(events);
         Map<Long, Integer> confirmedRequests = fetchConfirmedRequests(events);
 
-        List<EventShortDto> result = toShortDtos(events, users, views, confirmedRequests);
+        List<EventShortDto> result = toShortDtos(events, users, ratings, confirmedRequests);
         log.info("EventService: для пользователя {} найдено {} событий.", userId, result.size());
         return result;
     }
@@ -136,10 +142,10 @@ public class EventFacadeImpl implements EventFacade {
 
         UserShortDto initiator = userClient.getUserShort(event.getInitiatorId());
         int confirmedRequests = requestClient.getConfirmedCountForEvent(eventId);
-        int views = fetchViewsForSingleEvent(event);
+        double rating = fetchRating(eventId);
         List<CommentEventDto> comments = commentClient.getCommentsForEvent(eventId);
 
-        EventFullDto result = eventMapper.toEventFullDto(event, initiator, confirmedRequests, views, comments);
+        EventFullDto result = eventMapper.toEventFullDto(event, initiator, confirmedRequests, rating, comments);
         log.info("EventService: event {} для user {} найден.", result.getId(), result.getInitiator().getId());
         return result;
     }
@@ -152,10 +158,10 @@ public class EventFacadeImpl implements EventFacade {
         UserShortDto initiator = userClient.getUserShort(event.getInitiatorId());
 
         int confirmedRequests = requestClient.getConfirmedCountForEvent(eventId);
-        int views = fetchViewsForSingleEvent(event);
+        double rating = fetchRating(eventId);
         List<CommentEventDto> comments = commentClient.getCommentsForEvent(eventId);
 
-        EventFullDto result = eventMapper.toEventFullDto(event, initiator, confirmedRequests, views, comments);
+        EventFullDto result = eventMapper.toEventFullDto(event, initiator, confirmedRequests, rating, comments);
         log.info("EventService: event {} для user {} обновлен.", result.getId(), result.getInitiator().getId());
         return result;
     }
@@ -247,73 +253,70 @@ public class EventFacadeImpl implements EventFacade {
         return eventService.getEvents(ids);
     }
 
-    //  HELPERS: просмотры
-    //Получаем просмотры для списка событий одним запросом к stats-service.
-    private Map<Long, Integer> fetchViews(List<Event> events) {
-        if (events == null || events.isEmpty()) {
-            return Collections.emptyMap();
+    @Override
+    public List<EventShortDto> getRecommendations(Long userId) {
+        userClient.checkUser(userId);
+        List<RecommendedEventProto> recommendations = analyzerClient
+                .getRecommendationsForUser(userId, DEFAULT_RECOMMENDATIONS_SIZE);
+
+        if (recommendations.isEmpty()) {
+            return List.of();
         }
 
-        // Собираем URI формата /events/{id}, именно их мы логируем в контроллерах
-        Map<Long, String> idToUri = events.stream()
-                .filter(e -> e.getId() != null)
-                .collect(Collectors.toMap(
-                        Event::getId,
-                        e -> "/events/" + e.getId()
-                ));
+        List<Long> eventIds = recommendations.stream().map(RecommendedEventProto::getEventId).toList();
+        List<Event> events = eventService.getEventsForRecommendations(eventIds);
 
-        List<String> uris = new ArrayList<>(idToUri.values());
+        Map<Long, Integer> order = IntStream.range(0, eventIds.size())
+                .boxed()
+                .collect(Collectors.toMap(eventIds::get, Function.identity()));
 
-        // Определяем минимальную точку старта по createdOn,
-        // если вдруг все null — берем "год назад" как безопасный диапазон
-        LocalDateTime now = LocalDateTime.now();
-        LocalDateTime start = events.stream()
-                .map(Event::getCreatedOn)
-                .filter(Objects::nonNull)
-                .min(LocalDateTime::compareTo)
-                .orElse(now.minusYears(1));
+        events.sort(Comparator.comparingInt(event -> order.get(event.getId())));
 
-        ViewStatsParamDto params = ViewStatsParamDto.builder()
-                .start(start)
-                .end(now)
-                .uris(uris)
-                .unique(true) // уникальные просмотры по IP
-                .build();
+        Map<Long, UserShortDto> users = fetchUsers(events);
+        Map<Long, Double> ratings = fetchRatings(events);
+        Map<Long, Integer> confirmedRequests = fetchConfirmedRequests(events);
 
-        List<ViewStatsDto> stats;
-        try {
-            stats = statsClient.get(params);
-        } catch (Exception ex) {
-            log.warn("Не удалось получить статистику просмотров, возвращаю 0 для всех событий: {}", ex.getMessage());
-            return idToUri.keySet().stream()
-                    .collect(Collectors.toMap(id -> id, id -> 0));
-        }
-
-        // stats приходят с полями app, uri, hits
-        Map<String, Integer> uriToHits = stats.stream()
-                .collect(Collectors.toMap(
-                        ViewStatsDto::getUri,
-                        v -> v.getHits().intValue(),
-                        Integer::sum
-                ));
-
-        Map<Long, Integer> result = new HashMap<>();
-        for (Map.Entry<Long, String> entry : idToUri.entrySet()) {
-            Long id = entry.getKey();
-            String uri = entry.getValue();
-            int hits = uriToHits.getOrDefault(uri, 0);
-            result.put(id, hits);
-        }
-
+        List<EventShortDto> result = toShortDtos(events, users, ratings, confirmedRequests);
+        log.info("EventService: найдено {} событий для рекомендаций.", result.size());
         return result;
     }
 
-    private int fetchViewsForSingleEvent(Event event) {
-        if (event == null || event.getId() == null) {
-            return 0;
+    @Override
+    public void likeEvent(Long userId, Long eventId) {
+        userClient.checkUser(userId);
+        eventService.getPublicEvent(eventId);
+        collectorClient.sendUserAction(userId, eventId, ActionTypeProto.ACTION_LIKE);
+        log.debug("EventService: пользователь {} поставил лайк событию {}.", userId, eventId);
+    }
+
+    //  HELPERS: просмотры
+    private Double fetchRating(Long eventId) {
+        return analyzerClient.getInteractionsCount(List.of(eventId))
+                .stream()
+                .findFirst()
+                .map(RecommendedEventProto::getScore)
+                .orElse(0.0);
+    }
+
+    private Map<Long, Double> fetchRatings(List<Event> events) {
+        if (events.isEmpty()) {
+            return Collections.emptyMap();
         }
-        Map<Long, Integer> map = fetchViews(List.of(event));
-        return map.getOrDefault(event.getId(), 0);
+
+        List<Long> ids = events.stream()
+                .map(Event::getId)
+                .toList();
+
+        Map<Long, Double> ratings = analyzerClient.getInteractionsCount(ids)
+                .stream()
+                .collect(Collectors.toMap(
+                        RecommendedEventProto::getEventId,
+                        RecommendedEventProto::getScore
+                ));
+
+        ids.forEach(id -> ratings.putIfAbsent(id, 0.0));
+
+        return ratings;
     }
 
     private Map<Long, UserShortDto> fetchUsers(List<Event> events) {
@@ -361,7 +364,7 @@ public class EventFacadeImpl implements EventFacade {
     private List<EventShortDto> toShortDtos(
             List<Event> events,
             Map<Long, UserShortDto> users,
-            Map<Long, Integer> views,
+            Map<Long, Double> ratings,
             Map<Long, Integer> confirmedRequests
     ) {
         List<EventShortDto> result = new ArrayList<>(events.size());
@@ -371,10 +374,10 @@ public class EventFacadeImpl implements EventFacade {
             Long initiatorId = e.getInitiatorId();
 
             UserShortDto initiator = users.get(initiatorId);
-            int viewCount = views.getOrDefault(eventId, 0);
+            double rating = ratings.getOrDefault(eventId, 0.0);
             int confirmed = confirmedRequests.getOrDefault(eventId, 0);
 
-            EventShortDto dto = eventMapper.toEventShortDto(e, initiator, confirmed, viewCount);
+            EventShortDto dto = eventMapper.toEventShortDto(e, initiator, confirmed, rating);
 
             result.add(dto);
         }
@@ -385,7 +388,7 @@ public class EventFacadeImpl implements EventFacade {
     private List<EventFullDto> toFullDtos(
             List<Event> events,
             Map<Long, UserShortDto> users,
-            Map<Long, Integer> views,
+            Map<Long, Double> ratings,
             Map<Long, Integer> confirmedRequests,
             Map<Long, List<CommentEventDto>> comments
     ) {
@@ -396,12 +399,12 @@ public class EventFacadeImpl implements EventFacade {
             Long initiatorId = e.getInitiatorId();
 
             UserShortDto initiator = users.get(initiatorId);
-            int viewCount = views.getOrDefault(eventId, 0);
+            double rating = ratings.getOrDefault(eventId, 0.0);
             int confirmed = confirmedRequests.getOrDefault(eventId, 0);
             List<CommentEventDto> eventComments =
                     comments.getOrDefault(eventId, List.of());
 
-            EventFullDto dto = eventMapper.toEventFullDto(e, initiator, confirmed, viewCount, eventComments);
+            EventFullDto dto = eventMapper.toEventFullDto(e, initiator, confirmed, rating, eventComments);
 
             result.add(dto);
         }

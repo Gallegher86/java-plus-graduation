@@ -274,6 +274,11 @@ public class EventServiceImpl implements EventService {
                 .toList();
     }
 
+    @Override
+    public List<Event> getEventsForRecommendations(List<Long> ids) {
+        return eventRepository.findAllWithCategoryByIdInAndState(ids, EventState.PUBLISHED);
+    }
+
     // HELPERS: предикаты
     private BooleanExpression buildPublicPredicate(PublicEventFilterParams params) {
         BooleanExpression predicate = event.state.eq(EventState.PUBLISHED);

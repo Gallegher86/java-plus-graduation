@@ -118,7 +118,7 @@ public class CompilationFacadeImpl implements CompilationFacade {
                         event,
                         initiatorsMap.get(event.getInitiatorId()),
                         0,
-                        0
+                        0.0
                 ))
                 .toList();
     }

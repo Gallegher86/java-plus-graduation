@@ -25,11 +25,20 @@ public class UserClientFacade {
         return userClient.getUsersShort(ids);
     }
 
+    @CircuitBreaker(name = "userService", fallbackMethod = "checkUserFallback")
+    public void checkUser(Long userId) {
+        userClient.checkUser(userId);
+    }
+
     public UserShortDto getUserShortFallback(Long id, Throwable t) {
         throw new ServiceUnavailableException("user-service недоступен", t);
     }
 
     public List<UserShortDto> getUsersShortFallback(List<Long> ids, Throwable t) {
+        throw new ServiceUnavailableException("user-service недоступен", t);
+    }
+
+    public void checkUserFallback(Long userId, Throwable t) {
         throw new ServiceUnavailableException("user-service недоступен", t);
     }
 }
