@@ -9,17 +9,17 @@ import ru.practicum.ewm.stats.avro.UserActionAvro;
 
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Slf4j
 @Service
 public class AggregatorService {
-    private final Map<Long, Double> eventWeightSums = new HashMap<>();
-    private final Map<Long, Map<Long, Double>> minWeightsSums = new HashMap<>();
-    private final Map<Long, Map<Long, Double>> eventUserWeights = new HashMap<>();
-    private final Map<Long, Map<Long, Double>> userEventWeights = new HashMap<>();
+    private final Map<Long, Double> eventWeightSums = new ConcurrentHashMap<>();
+    private final Map<Long, Map<Long, Double>> minWeightsSums = new ConcurrentHashMap<>();
+    private final Map<Long, Map<Long, Double>> eventUserWeights = new ConcurrentHashMap<>();
+    private final Map<Long, Map<Long, Double>> userEventWeights = new ConcurrentHashMap<>();
 
     /**
      * Обновляет коэффициенты сходства мероприятий после нового действия пользователя.
@@ -56,7 +56,7 @@ public class AggregatorService {
      */
     private double getCurrentWeight(long eventId, long userId) {
         return eventUserWeights
-                .computeIfAbsent(eventId, id -> new HashMap<>())
+                .computeIfAbsent(eventId, id -> new ConcurrentHashMap<>())
                 .getOrDefault(userId, 0.0);
     }
 
@@ -69,11 +69,11 @@ public class AggregatorService {
                                   double newWeight) {
 
         eventUserWeights
-                .computeIfAbsent(eventId, id -> new HashMap<>())
+                .computeIfAbsent(eventId, id -> new ConcurrentHashMap<>())
                 .put(userId, newWeight);
 
         userEventWeights
-                .computeIfAbsent(userId, id -> new HashMap<>())
+                .computeIfAbsent(userId, id -> new ConcurrentHashMap<>())
                 .put(eventId, newWeight);
 
         double delta = newWeight - oldWeight;
@@ -182,7 +182,7 @@ public class AggregatorService {
         long second = Math.max(eventA, eventB);
 
         minWeightsSums
-                .computeIfAbsent(first, e -> new HashMap<>())
+                .computeIfAbsent(first, e -> new ConcurrentHashMap<>())
                 .put(second, sum);
     }
 
@@ -194,7 +194,7 @@ public class AggregatorService {
         long second = Math.max(eventA, eventB);
 
         return minWeightsSums
-                .computeIfAbsent(first, e -> new HashMap<>())
+                .computeIfAbsent(first, e -> new ConcurrentHashMap<>())
                 .getOrDefault(second, 0.0);
     }
 }

@@ -11,7 +11,6 @@ import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import ru.practicum.client.CollectorClient;
 import ru.practicum.dto.event.EventFullDto;
 import ru.practicum.dto.event.EventShortDto;
 import ru.practicum.dto.event.EventSort;
@@ -70,14 +69,14 @@ public class EventPublicController {
         return eventFacade.getPublicEvent(id, userId);
     }
 
-    @GetMapping("/events/recommendations")
+    @GetMapping("/recommendations")
     public List<EventShortDto> getRecommendations(
             @RequestHeader("X-EWM-USER-ID") Long userId
     ) {
         return eventFacade.getRecommendations(userId);
     }
 
-    @PutMapping("/events/{eventId}/like")
+    @PutMapping("/{eventId}/like")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void likeEvent(
             @PathVariable Long eventId,

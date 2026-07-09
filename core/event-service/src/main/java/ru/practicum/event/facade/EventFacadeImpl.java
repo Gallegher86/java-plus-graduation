@@ -270,7 +270,9 @@ public class EventFacadeImpl implements EventFacade {
                 .boxed()
                 .collect(Collectors.toMap(eventIds::get, Function.identity()));
 
-        events.sort(Comparator.comparingInt(event -> order.get(event.getId())));
+        events.sort(Comparator.comparingInt(
+                event -> order.getOrDefault(event.getId(), Integer.MAX_VALUE)
+        ));
 
         Map<Long, UserShortDto> users = fetchUsers(events);
         Map<Long, Double> ratings = fetchRatings(events);
