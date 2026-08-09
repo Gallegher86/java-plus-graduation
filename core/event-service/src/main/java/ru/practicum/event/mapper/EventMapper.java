@@ -28,13 +28,13 @@ public interface EventMapper {
     @Mapping(target = "participantLimit", source = "event.partLimit")
     @Mapping(target = "confirmedRequests", source = "confirmedRequests")
     @Mapping(target = "location", source = "event")
-    @Mapping(target = "views", source = "views")
+    @Mapping(target = "rating", source = "rating")
     @Mapping(target = "comments", source = "comments")
     @Mapping(target = "initiator", source = "initiator")
     EventFullDto toEventFullDto(Event event,
                                 UserShortDto initiator,
                                 int confirmedRequests,
-                                int views,
+                                double rating,
                                 List<CommentEventDto> comments);
 
     @Mapping(target = "participantLimit", source = "partLimit")
@@ -42,12 +42,12 @@ public interface EventMapper {
 
     @Mapping(target = "id", source = "event.id")
     @Mapping(target = "confirmedRequests", source = "confirmedRequests")
-    @Mapping(target = "views", source = "views")
+    @Mapping(target = "rating", source = "rating")
     @Mapping(target = "initiator", source = "initiator")
     EventShortDto toEventShortDto(Event event,
                                   UserShortDto initiator,
                                   int confirmedRequests,
-                                  int views);
+                                  double rating);
 
     default Location toLocation(Event event) {
         return new Location(event.getLocLat(), event.getLocLon());

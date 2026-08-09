@@ -8,7 +8,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import ru.practicum.client.CollectorClient;
 import ru.practicum.dto.request.ParticipationRequestDto;
+import ru.practicum.ewm.stats.proto.collector.ActionTypeProto;
 import ru.practicum.facade.RequestFacade;
 
 import java.util.List;
@@ -20,6 +22,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class RequestPrivateController {
     private final RequestFacade requestFacade;
+    private final CollectorClient collectorClient;
 
     @PostMapping
     public ResponseEntity<ParticipationRequestDto> create(
@@ -27,6 +30,7 @@ public class RequestPrivateController {
             @Positive @RequestParam @NotNull Long eventId
     ) {
         ParticipationRequestDto result = requestFacade.create(userId, eventId);
+        collectorClient.sendUserAction(userId, eventId, ActionTypeProto.ACTION_REGISTER);
         return ResponseEntity.status(HttpStatus.CREATED).body(result);
     }
 

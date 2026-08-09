@@ -39,4 +39,8 @@ public interface EventService {
     EventInternalDto getEvent(Long eventId);
 
     List<EventInternalDto> getEvents(List<Long> ids);
+
+    // RECOMMENDATIONS
+
+    List<Event> getEventsForRecommendations(List<Long> ids);
 }
